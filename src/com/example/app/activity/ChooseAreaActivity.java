@@ -11,11 +11,13 @@ import com.example.app.util.HttpCallbackListener;
 import com.example.app.util.HttpUtil;
 import com.example.app.util.Utility;
 
-
-
+import android.R.string;
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -48,6 +50,15 @@ public class ChooseAreaActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		SharedPreferences prefs = PreferenceManager
+				.getDefaultSharedPreferences(this);
+		if (prefs.getBoolean("city_selected", false)) {
+			Intent intent = new Intent(this, WeatherActivity.class);
+			startActivity(intent);
+			finish();
+			return;
+		}
+
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.choose_area);
 		listView = (ListView) findViewById(R.id.list_view);
@@ -69,6 +80,14 @@ public class ChooseAreaActivity extends Activity {
 				} else if (currentLevel == LEVEL_CITY) {
 					selectedCity = cityList.get(position);
 					queryCounties();
+				} else if (currentLevel == LEVEL_COUNTY) {
+					String countyCode = countyList.get(position)
+							.getCountyCode();
+					Intent intent = new Intent(ChooseAreaActivity.this,
+							WeatherActivity.class);
+					intent.putExtra("county_code", countyCode);
+					startActivity(intent);
+					finish();
 				}
 
 			}
@@ -79,7 +98,7 @@ public class ChooseAreaActivity extends Activity {
 
 	private void queryProvinces() {
 		Log.d("mainaicityt", "hello444");
-		provinceList = coolWeatherDB.loadProvinces();  //ø’÷∏’Î“Ï≥£,◊¢“‚ø¥¬ﬂº≠
+		provinceList = coolWeatherDB.loadProvinces(); // ø’÷∏’Î“Ï≥£,◊¢“‚ø¥¬ﬂº≠
 		if (provinceList.size() > 0) {
 			dataList.clear();
 			for (Province province : provinceList) {
@@ -131,49 +150,54 @@ public class ChooseAreaActivity extends Activity {
 
 	private void queryFromServer(final String code, final String type) {
 		String address;
-		if(!TextUtils.isEmpty(code)){
-			address = "http://www.weather.com.cn/data/list3/city"+code+".xml";
-		}else{
+		if (!TextUtils.isEmpty(code)) {
+			address = "http://www.weather.com.cn/data/list3/city" + code
+					+ ".xml";
+		} else {
 			address = "http://www.weather.com.cn/data/list3/city.xml";
 		}
 		showProgressDialog();
 		HttpUtil.sendHttpRequest(address, new HttpCallbackListener() {
-			
+
 			@Override
 			public void onFinish(String response) {
-				boolean result = false ; 
-				if("province".equals(type)){
-					result = Utility.handleProvincesResponse(coolWeatherDB, response);
-				}else if("city".equals(type)){
-					result = Utility.handleCitiesResponse(coolWeatherDB, response, selectedProvince.getId());
-				}else if ("county".equals(type)){
-					result = Utility.handleCountiesResponse(coolWeatherDB, response, selectedCity.getId());
+				boolean result = false;
+				if ("province".equals(type)) {
+					result = Utility.handleProvincesResponse(coolWeatherDB,
+							response);
+				} else if ("city".equals(type)) {
+					result = Utility.handleCitiesResponse(coolWeatherDB,
+							response, selectedProvince.getId());
+				} else if ("county".equals(type)) {
+					result = Utility.handleCountiesResponse(coolWeatherDB,
+							response, selectedCity.getId());
 				}
-				if(result){
+				if (result) {
 					runOnUiThread(new Runnable() {
 						public void run() {
 							closeProgressDialog();
-							if("province".equals(type)){
+							if ("province".equals(type)) {
 								queryProvinces();
-							}else if("city".equals(type)){
+							} else if ("city".equals(type)) {
 								queryCities();
-							}else if("county".equals(type)){
+							} else if ("county".equals(type)) {
 								queryCounties();
 							}
 						}
 					});
 				}
 			}
-			
+
 			@Override
 			public void onError(Exception e) {
-				runOnUiThread(new  Runnable() {
+				runOnUiThread(new Runnable() {
 					public void run() {
 						closeProgressDialog();
-						Toast.makeText(ChooseAreaActivity.this, "º”‘ÿ ß∞‹", Toast.LENGTH_SHORT).show();
+						Toast.makeText(ChooseAreaActivity.this, "º”‘ÿ ß∞‹",
+								Toast.LENGTH_SHORT).show();
 					}
 				});
-				
+
 			}
 		});
 	}
@@ -188,18 +212,18 @@ public class ChooseAreaActivity extends Activity {
 	}
 
 	private void closeProgressDialog() {
-		if (progressDialog == null){
+		if (progressDialog != null) {
 			progressDialog.dismiss();
 		}
 	}
 
 	@Override
 	public void onBackPressed() {
-		if(currentLevel == LEVEL_COUNTY){
+		if (currentLevel == LEVEL_COUNTY) {
 			queryCities();
-		}else if (currentLevel == LEVEL_CITY){
+		} else if (currentLevel == LEVEL_CITY) {
 			queryProvinces();
-		}else{
+		} else {
 			finish();
 		}
 	}
