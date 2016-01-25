@@ -1,4 +1,4 @@
-package model;
+package com.example.app.model;
 
 public class City {
 	private int id ;

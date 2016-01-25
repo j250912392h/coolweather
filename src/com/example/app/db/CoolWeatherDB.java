@@ -1,11 +1,12 @@
-package db;
+package com.example.app.db;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import model.City;
-import model.County;
-import model.Province;
+import com.example.app.model.City;
+import com.example.app.model.County;
+import com.example.app.model.Province;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -24,7 +25,7 @@ public class CoolWeatherDB {
 	}
 
 	public synchronized static CoolWeatherDB getInstance(Context context) {
-		if (coolWeatherDB != null) {
+		if (coolWeatherDB == null) {
 			coolWeatherDB = new CoolWeatherDB(context);
 		}
 		return coolWeatherDB;
@@ -33,8 +34,8 @@ public class CoolWeatherDB {
 	public void saveProvince(Province province) {
 		if (province != null) {
 			ContentValues values = new ContentValues();
-			values.put("province_name", province.getPrivinceName());
-			values.put("province_code", province.getPrivinceCode());
+			values.put("province_name", province.getProvinceName());
+			values.put("province_code", province.getProvinceCode());
 			db.insert("Province", null, values);
 		}
 	}
@@ -47,9 +48,9 @@ public class CoolWeatherDB {
 			do {
 				Province province = new Province();
 				province.setId(cursor.getInt(cursor.getColumnIndex("id")));
-				province.setPrivinceName(cursor.getString(cursor
+				province.setProvinceName(cursor.getString(cursor
 						.getColumnIndex("province_name")));
-				province.setPrivinceCode(cursor.getString(cursor
+				province.setProvinceCode(cursor.getString(cursor
 						.getColumnIndex("province_code")));
 				list.add(province);
 			} while (cursor.moveToNext());
